@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía dinámica · Make (Entrada Sheets → Registro → Salida Docs)</title>
+<style>
+  :root{
+    --bg:#ffffff; --card:#f9fafb; --text:#1f2937; --muted:#4b5563;
+    --brand:#0b3d91; --accent:#f2b705; --ok:#16a34a; --warn:#d97706; --err:#dc2626;
+    --border:#d1d5db; --chip:#eef2ff;
+  }
+  html,body{height:100%}
+  body{margin:0; background:var(--bg); color:var(--text);
+       font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+  .wrap{max-width:1050px; margin:0 auto; padding:28px 16px 64px}
+  header.hero{background:linear-gradient(135deg, var(--brand), #1a58c4);
+              color:#fff; border-radius:14px; padding:26px 18px; margin:16px 0 22px}
+  header.hero h1{margin:0 0 6px; font-size:clamp(24px,3.4vw,36px)}
+  header.hero p{margin:0; opacity:.95}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:0 4px 14px rgba(0,0,0,.06)}
+  h2{color:var(--brand); margin:22px 0 12px; font-size:clamp(20px,2.6vw,28px)}
+  h3{color:var(--brand); margin:14px 0 8px; font-size:clamp(18px,2.2vw,22px)}
+  a{color:var(--brand); text-decoration:none} a:hover{text-decoration:underline}
+  .kbd{background:#f3f4f6; border:1px solid var(--border); padding:2px 6px; border-radius:6px; font-family:ui-monospace,monospace}
+  .foot{color:var(--muted); font-size:.95rem}
+  /* Toggle chips */
+  .toggles{display:flex; gap:10px; flex-wrap:wrap}
+  .chip{display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+        border:1px solid var(--border); border-radius:999px; background:#fff; cursor:pointer}
+  input[type=radio]{display:none}
+  input[type=radio]:checked + label{outline:2px solid var(--accent); background:var(--chip)}
+  /* Steps */
+  .step{border:1px solid var(--border); border-radius:12px; padding:14px; margin:12px 0; background:#fff}
+  .hidden{display:none}
+  .n{display:inline-block; background:var(--chip); color:var(--brand); font-weight:700;
+     padding:2px 8px; border-radius:999px; margin-right:6px}
+  /* Figure centrada */
+  .hero-img{ text-align:center; margin:16px 0 22px; }
+  .hero-img img{ max-width:860px; width:100%; height:auto;
+                 border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.08); }
+  .hero-img figcaption{ color:var(--muted); font-size:.9rem; margin-top:6px; }
+  /* Tabla simple */
+  table{width:100%; border-collapse:collapse; margin-top:8px}
+  th,td{border:1px solid var(--border); padding:8px; font-size:14px; text-align:left}
+  th{background:#f0f6ff}
+  /* Callouts */
+  .call{border-left:4px solid var(--brand); background:#f0f6ff; padding:10px 12px; border-radius:8px}
+  .ok{border-left-color:var(--ok); background:#ecfdf5}
+</style>
+ <style>
+    .recuadro {
+      border: 2px solid #0b3d91;
+      border-radius: 12px;
+      background: #f0f6ff;
+      padding: 14px;
+      margin: 16px 0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .recuadro a {
+      color: #0b3d91;
+      font-weight: 600;
+      text-decoration: none;
+      display: block;
+    }
+
+    .recuadro a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <header class="hero">
+      <h1>Guía dinámica de escenarios en Make</h1>
+      <p><strong>Entrada</strong> en Google Sheets y <strong>salida</strong> Google Docs. En medio se agrega un módulo en el que  <strong>Gemini</strong> hace algún trabajo.</p>
+    </header>
+<!-- ====== INDICE ====== -->
+<nav class="card" style="margin-top:20px">
+  <h2>📑 Índice de la guía</h2>
+  <ul style="list-style:none; padding-left:0; line-height:1.6">
+    <li><a href="#variantes">1) Variantes</a></li>
+    <li><a href="#flujo">2) Flujo</a></li>
+    <li><a href="#modulo1">Módulo 1 — Trigger (Google Sheets)</a></li>
+    <li><a href="#modulo2">Módulo 2 — Gemini</a></li>
+    <li><a href="#modulo3">Módulo 3 — Google Docs</a></li>
+    <li><a href="#guardar">Guardar el Escenario</a></li>
+    <li><a href="#prueba">3) Prueba y activación</a></li>
+    <li><a href="#sugerencias">4) Sugerencias para el usuario</a></li>
+  </ul>
+</nav>
+    <!-- ====== ELIGE TUS VARIANTES ====== -->
+   <section class="card" id="variantes">
+      <h2>1) Variantes</h2>
+      <div class="toggles" aria-label="Entrada">
+        <input id="t-sheets" type="radio" name="sheet" value="sheets">
+        <label class="chip" for="t-sheets">🗂️ Entrada: Google Sheets</label>
+      </div>
+
+      <div class="toggles" style="margin-top:8px" aria-label="Salida">
+        <input id="t-docs" type="radio" name="out" value="docs" checked>
+        <label class="chip" for="t-docs">📄 Salida: Google Docs</label>
+
+      </div>
+      <p class="foot">La guía mostrará solo los pasos relevantes. </p>
+    </section>
+
+    <!-- ====== TÍTULO DINÁMICO ====== -->
+ <section id="flujo">
+      <h2>2) Flujo :
+        <span id="title-in">Entrada <em>Google Sheets</em></span> →
+        <span id="title-out">Salida <em>Google Docs</em></span>
+      </h2>
+      </section>
+
+    <!-- ====== CONSTRUIR ESCENARIO ====== -->
+    <section>
+      <!-- Paso 2: depende SOLO de la entrada -->
+         <div class="step" data>
+        <h3 id="modulo1">Módulo 1 — Trigger (Google Sheets)</h3>
+<img src="Make-GoogleSheets.jpg"
+     alt="Toma como entrada un archivo de Google Sheet"
+     loading="lazy"
+     style="display:block;margin:12px auto 20px;max-width:820px;width:100%;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);">
+
+ <p>Agrega <strong>Google Sheets → Watch rows</strong>. Conecta tu cuenta, elige archivo y pestaña (p. ej., <em>Form Responses 1</em>).</p>
+        <div class="call ok"><strong>Tip:</strong> Si tu origen real es Google Forms, esta pestaña suele llamarse <em>Form Responses 1</em>.</div>
+<img src="Make-GoogleSheets2.jpg"
+     alt="Ingresa la cuenta con la que vas a conectarte y selecciona en Spreedsheet ID el archivo dentro de tu drive. En el ejemplo, seleccioné el archivo Ejemplo2 (google sheet) que está dentro de la carpeta Diplomatura..., en la carpeta Ejemplo2."
+     loading="lazy"
+     style="display:block;margin:12px auto 20px;max-width:820px;width:100%;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);">
+</div>
+<div class="recuadro">
+  <a href="https://docs.google.com/spreadsheets/d/15-V3g1FuVzzw6YeM4dUOOaWTS2fhdT6BafZh4VNqbqE/edit?usp=sharing" target="_blank" rel="noopener">
+    📄 Mi archivo Ejemplo2 en Google Drive.   </a>
+    <br>Si desea utilizar este archivo debe bajarlo y subirlo a su drive.  
+    <br><em>Ud. no tiene permiso de editor, solo de lector.</em>
+ 
+</div>      
+ <h3 id="modulo2">Módulo 2 — Gemini (procesa el texto)</h3>
+      <ol>
+    <li>Añade <strong>Google Gemini AI → Create a completion</strong>.</li>
+    
+<img src="Make-Gemini.jpg"
+     alt="Agrega el módulo de Gemini."
+     loading="lazy"
+     style="display:block;margin:12px auto 20px;max-width:820px;width:100%;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);">
+ <li>Pega tu <em>API key</em> de AI Studio y elige el modelo (p. ej. <span class="badge">gemini‑1.5 Flash</span>).</li>
+
+<img src="Make-Gemini-APIKey.jpg"
+     alt="Agrega la APIKey."
+     loading="lazy"
+     style="display:block;margin:12px auto 20px;max-width:820px;width:100%;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);">
+        <li>Ejemplo de <em>prompt</em> (texto libre):</li>
+      </ol>
+<img src="Make-Gemini-22.jpg"
+     alt="Crea el prompt."
+     loading="lazy"
+     style="display:block;margin:12px auto 20px;max-width:820px;width:100%;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);">
+
+      <pre>{"system": "Eres un abogado especializado en ...",
+"user": "Realiza un contrato con los datos...." </pre>
+      <p>Ejemplo de salida texto (opcional, si configuras el modelo para devolver texto):</p>
+      <pre>{
+  "titulo": "Contratos sobre..",
+  
+}</pre>
+<p>Puedes usar los datos del Google Sheet seleccionando la columna correspondiente</p>
+
+<img src="Make-Gemini-3.jpg"
+     alt="Crea el prompt."
+     loading="lazy"
+     style="display:block;margin:12px auto 20px;max-width:820px;width:100%;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);">
+
+  <!-- Paso 4: depende SOLO de la salida -->
+      <div class="step" data-when="out=docs">
+       <h3 id="modulo3">Módulo 3 — Crear borrador (Google Docs)</h3>
+        <p>Usa <strong>Google Docs</strong>. Puedes usar el directo que es "Create a document" o  "Create a document from a template". En este último caso deberías tener el template armado para completar los placeholders (<code>{Nombre}</code>, <code>{Hechos}</code>, etc.).</p>
+      </div>
+<img src="Make-GoogleDoc.jpg"
+     alt="Crea el archivo .doc en tu Google Drive."
+     loading="lazy"
+     style="display:block;margin:12px auto 20px;max-width:820px;width:100%;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);">
+
+<p>En este ejemplo se usó "Create a document", con los siguientes parámetros.</p>
+
+      </div>
+<img src="Make-GoogleDoc2.jpg"
+     alt="Crea el archivo .doc en tu Google Drive."
+     loading="lazy"
+     style="display:block;margin:12px auto 20px;max-width:820px;width:100%;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);">
+
+<div class="recuadro">
+  <a href="https://docs.google.com/document/d/1kKTQI8kuIPn7AUAb8lmA4u1B0JKzr-NXijTi3NwlYRY/edit?tab=t.0" target="_blank" rel="noopener">
+    📄 Uno de los archivos que generó el escenario en Google Drive.   </a>
+    <br><em>Recuerde que Ud. no tiene permiso de editor, solo de lector.</em>
+ 
+</div>      
+
+           <!-- Paso 5: Guardar -->
+      <div class="step" data-when="">
+    <h3 id="guardar">Guardar el Escenario</h3>
+        <p>No te olvides de guardar tu escenario antes de dar "Run once"</p>
+<img src="make-Guardar.jpg"
+     alt="Crea el prompt."
+     loading="lazy"
+     style="display:block;margin:12px auto 20px;max-width:820px;width:100%;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);">
+
+      </div>
+
+      <!-- Paso 6: Común (prueba) -->
+      <div class="step" data-when="">
+        <h2 id="prueba">3) Prueba y activación</h2>
+          <div class="call"><strong>Run once</strong> para verificar: a partir del google sheet que genere el reclamo.</div>
+
+   <p>Para dejarlo activo, guarda, vuelve a Scenarios (ver en el Panel de Control a la izquierda) y pone en ON el escenario.</p>
+<img src="Make-Trabaja.jpg"
+     alt="Crea el prompt."
+     loading="lazy"
+     style="display:block;margin:12px auto 20px;max-width:820px;width:100%;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);">
+
+
+      </div>
+    </section>
+
+    <!-- Buenas prácticas -->
+    <section class="card" id="sugerencias">
+<div class="sugerencias">
+  <h2>4) 💡 Sugerencias para el usuario</h2>
+  <ul>
+    <li>Descargue el archivo a su computadora y súbalo a su propio Google Drive para poder editarlo.</li>
+    <li>No intente modificar el archivo original: solo tiene permisos de lectura.</li>
+    <li>Si necesita personalizarlo, cree una copia en su Drive (Archivo → Hacer una copia).</li>
+    <li>Verifique que esté logueado con la cuenta de Google correcta antes de abrir el archivo.</li>
+<li>Pruebe  el escenario con datos ficticios.</li>
+<li>Genere documentos borradores para ser chequeados por Ud.</li>
+
+  </ul>
+</div>
+    </section>
+  </div>
+
+ 
+</body>
+</html>
